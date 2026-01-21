@@ -509,30 +509,30 @@ public:
 		// textOverlay->addText writes to the vertex buffer for the current frame
 		//VK_CHECK_RESULT(vkMapMemory(vulkanDevice->logicalDevice, textOverlay->vertexBuffers[currentBuffer].memory, 0, VK_WHOLE_SIZE, 0, (void**)&textOverlay->mapped));
 
-		textOverlay->addText(title, 5.0f * ui.scale, 5.0f * ui.scale, TextOverlay::alignLeft);
+		// textOverlay->addText(title, 5.0f * ui.scale, 5.0f * ui.scale, TextOverlay::alignLeft);
 
-		std::stringstream ss;
-		ss << std::fixed << std::setprecision(2) << (frameTimer * 1000.0f) << "ms (" << lastFPS << " fps)";
-		textOverlay->addText(ss.str(), 5.0f * ui.scale, 25.0f * ui.scale, TextOverlay::alignLeft);
+		// std::stringstream ss;
+		// ss << std::fixed << std::setprecision(2) << (frameTimer * 1000.0f) << "ms (" << lastFPS << " fps)";
+		// textOverlay->addText(ss.str(), 5.0f * ui.scale, 25.0f * ui.scale, TextOverlay::alignLeft);
 
-		textOverlay->addText(deviceProperties.deviceName, 5.0f * ui.scale, 45.0f * ui.scale, TextOverlay::alignLeft);
+		// textOverlay->addText(deviceProperties.deviceName, 5.0f * ui.scale, 45.0f * ui.scale, TextOverlay::alignLeft);
 
-		// Display current model view matrix
-		textOverlay->addText("model view matrix", (float)width - 5.0f * ui.scale, 5.0f * ui.scale, TextOverlay::alignRight);
-		for (uint32_t i = 0; i < 4; i++) {
-			ss.str("");
-			ss << std::fixed << std::setprecision(2) << std::showpos;
-			ss << uniformData.modelView[0][i] << " " << uniformData.modelView[1][i] << " " << uniformData.modelView[2][i] << " " << uniformData.modelView[3][i];
-			textOverlay->addText(ss.str(), (float)width - 5.0f * ui.scale, (25.0f + (float)i * 20.0f) * ui.scale, TextOverlay::alignRight);
-		}
+		// // Display current model view matrix
+		// textOverlay->addText("model view matrix", (float)width - 5.0f * ui.scale, 5.0f * ui.scale, TextOverlay::alignRight);
+		// for (uint32_t i = 0; i < 4; i++) {
+		// 	ss.str("");
+		// 	ss << std::fixed << std::setprecision(2) << std::showpos;
+		// 	ss << uniformData.modelView[0][i] << " " << uniformData.modelView[1][i] << " " << uniformData.modelView[2][i] << " " << uniformData.modelView[3][i];
+		// 	textOverlay->addText(ss.str(), (float)width - 5.0f * ui.scale, (25.0f + (float)i * 20.0f) * ui.scale, TextOverlay::alignRight);
+		// }
 
 		glm::vec3 projected = glm::project(glm::vec3(0.0f), uniformData.modelView, uniformData.projection, glm::vec4(0, 0, (float)width, (float)height));
-		textOverlay->addText("A torus knot", projected.x, projected.y, TextOverlay::alignCenter);
+		textOverlay->addText("Noquaco is like Guacuco", projected.x, projected.y, TextOverlay::alignCenter);
 
 #if defined(__ANDROID__)
 #else
-		textOverlay->addText("Press \"space\" to toggle text overlay", 5.0f * ui.scale, 65.0f * ui.scale, TextOverlay::alignLeft);
-		textOverlay->addText("Hold middle mouse button and drag to move", 5.0f * ui.scale, 85.0f * ui.scale, TextOverlay::alignLeft);
+		// textOverlay->addText("Press \"space\" to toggle text overlay", 5.0f * ui.scale, 65.0f * ui.scale, TextOverlay::alignLeft);
+		// textOverlay->addText("Hold middle mouse button and drag to move", 5.0f * ui.scale, 85.0f * ui.scale, TextOverlay::alignLeft);
 #endif
 
 		//vkUnmapMemory(vulkanDevice->logicalDevice, textOverlay->vertexBuffers[currentBuffer].memory);

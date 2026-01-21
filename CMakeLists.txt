@@ -3,6 +3,7 @@
 
 cmake_minimum_required(VERSION 3.10.0 FATAL_ERROR)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-pointer-to-int-cast -Wno-sign-compare")
 
 set(NAME vulkanExamples)
 

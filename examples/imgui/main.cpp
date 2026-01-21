@@ -63,6 +63,7 @@ public:
 		ImGui::CreateContext();
 		// Set ImGui font and style scale factors to handle retina and other HiDPI displays
 		ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF("/home/pi/Documents/Vulkan/examples/assets/sometype-mono/SometypeMono-Regular.ttf", 40.0f); 
 		io.FontGlobalScale = example->ui.scale;
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.ScaleAllSizes(example->ui.scale);
@@ -344,7 +345,8 @@ public:
 	// Starts a new imGui frame and sets up windows and ui elements
 	void newFrame(VulkanExampleBase *example, bool updateFpsPlot)
 	{
-		const float uiScale = example->ui.scale;
+		// const float uiScale = example->ui.scale;
+        const float uiScale = 1.0;
 
 		// Being an intermediate mode UI, we generate a new UI frame on each draw
 		ImGui::NewFrame();
@@ -352,39 +354,45 @@ public:
 		// Init imGui windows and elements
 
 		// Debug window
-		ImGui::SetWindowPos(ImVec2(20 * uiScale, 20 * uiScale), ImGuiSetCond_FirstUseEver);
-		ImGui::SetWindowSize(ImVec2(300 * uiScale, 175 * uiScale), ImGuiSetCond_Always);
-		ImGui::TextUnformatted(sampleName.c_str());
-		ImGui::TextUnformatted(deviceName.c_str());
-		// Render a fps plot
-		if (updateFpsPlot) {
-			std::rotate(fpsPlot.begin(), fpsPlot.begin() + 1, fpsPlot.end());
-			fpsPlot.back() = lastFps;
-			if (lastFps < fpsMin) {
-				fpsMin = lastFps;
-			}
-			if (lastFps > fpsMax) {
-				fpsMax = lastFps;
-			}
-		}
-		ImGui::PlotLines("Frame Times", &fpsPlot[0], 50, 0, "", fpsMin, fpsMax, ImVec2(0, 80));
+		// ImGui::SetWindowPos(ImVec2(20 * uiScale, 20 * uiScale), ImGuiSetCond_FirstUseEver);
+		// ImGui::SetWindowSize(ImVec2(300 * uiScale, 175 * uiScale), ImGuiSetCond_Always);
+		// ImGui::TextUnformatted(sampleName.c_str());
+		// ImGui::TextUnformatted(deviceName.c_str());
+		// // Render a fps plot
+		// if (updateFpsPlot) {
+		// 	std::rotate(fpsPlot.begin(), fpsPlot.begin() + 1, fpsPlot.end());
+		// 	fpsPlot.back() = lastFps;
+		// 	if (lastFps < fpsMin) {
+		// 		fpsMin = lastFps;
+		// 	}
+		// 	if (lastFps > fpsMax) {
+		// 		fpsMax = lastFps;
+		// 	}
+		// }
+		// ImGui::PlotLines("Frame Times", &fpsPlot[0], 50, 0, "", fpsMin, fpsMax, ImVec2(0, 80));
+
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 		
 		// Example settings window
-		ImGui::SetNextWindowPos(ImVec2(20 * uiScale, 360 * uiScale), ImGuiSetCond_FirstUseEver);
-		ImGui::SetNextWindowSize(ImVec2(300 * uiScale, 200 * uiScale), ImGuiSetCond_FirstUseEver);
-		ImGui::Begin("Example settings");
-		ImGui::Checkbox("Render models", &displayModels);
-		ImGui::Checkbox("Display logos", &displayLogos);
-		ImGui::Checkbox("Display background", &displayBackground);
-		ImGui::Checkbox("Animate light", &animateLight);
-		ImGui::SliderFloat("Light speed", &lightSpeed, 0.1f, 1.0f);
-		if (ImGui::Combo("UI style", &selectedStyle, "Vulkan\0Classic\0Dark\0Light\0")) {
-			setStyle(selectedStyle);
-		}
+		ImGui::SetNextWindowPos(ImVec2(0.0, 0.0));
+		// ImGui::SetNextWindowSize(ImVec2(300 * uiScale, 200 * uiScale), ImGuiSetCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+		ImGui::Begin("Example settings", nullptr, window_flags);
+        ImGui::PushStyleColor(ImGuiCol_Text, (ImU32)ImColor(242, 255, 0, 255)); 
+        ImGui::Text("Channel created!");
+        ImGui::PopStyleColor();
+		// ImGui::Checkbox("LOCAL VARIABLE STUDIO", &displayModels);
+		// ImGui::Checkbox("Display logos", &displayLogos);
+		// ImGui::Checkbox("Display background", &displayBackground);
+		// ImGui::Checkbox("Animate light", &animateLight);
+		// ImGui::SliderFloat("Light speed", &lightSpeed, 0.1f, 1.0f);
+		// if (ImGui::Combo("UI style", &selectedStyle, "Vulkan\0Classic\0Dark\0Light\0")) {
+		// 	setStyle(selectedStyle);
+		// }
 
 		ImGui::End();
 
-		ImGui::ShowDemoWindow();
+		// ImGui::ShowDemoWindow();
 
 		// This does not render the UI to the screen, but gathers the draw data for the UI frame that we'll use to render it
 		ImGui::Render();

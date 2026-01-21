@@ -440,10 +440,10 @@ namespace vks
 	        return (value + alignment - 1) & ~(alignment - 1);
 		}
 
-		size_t alignedSize(size_t value, size_t alignment)
-		{
-			return (value + alignment - 1) & ~(alignment - 1);
-		}
+		// size_t alignedSize(size_t value, size_t alignment)
+		// {
+		// 	return (value + alignment - 1) & ~(alignment - 1);
+		// }
 
 
 		VkDeviceSize alignedVkSize(VkDeviceSize value, VkDeviceSize alignment)
