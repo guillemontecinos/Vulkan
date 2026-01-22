@@ -63,7 +63,7 @@ public:
 		ImGui::CreateContext();
 		// Set ImGui font and style scale factors to handle retina and other HiDPI displays
 		ImGuiIO& io = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF("/home/pi/Documents/Vulkan/examples/assets/sometype-mono/SometypeMono-Regular.ttf", 40.0f); 
+        io.Fonts->AddFontFromFileTTF("/home/pi/Documents/Vulkan/examples/assets/sometype-mono/SometypeMono-Regular.ttf", 40.0f);
 		io.FontGlobalScale = example->ui.scale;
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.ScaleAllSizes(example->ui.scale);
@@ -97,47 +97,47 @@ public:
 		vulkanStyle.Colors[ImGuiCol_MenuBarBg] = ImVec4(1.0f, 0.0f, 0.0f, 0.4f);
 		vulkanStyle.Colors[ImGuiCol_Header] = ImVec4(1.0f, 0.0f, 0.0f, 0.4f);
 		vulkanStyle.Colors[ImGuiCol_CheckMark] = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
-		setStyle(0);
+		// setStyle(0);
 		
 		// Dimensions
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(width, height);
 		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
-#if defined(_WIN32)
-		// If we directly work with os specific key codes, we need to map special key types like tab
-		io.KeyMap[ImGuiKey_Tab] = VK_TAB;
-		io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
-		io.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
-		io.KeyMap[ImGuiKey_UpArrow] = VK_UP;
-		io.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
-		io.KeyMap[ImGuiKey_Backspace] = VK_BACK;
-		io.KeyMap[ImGuiKey_Enter] = VK_RETURN;
-		io.KeyMap[ImGuiKey_Space] = VK_SPACE;
-		io.KeyMap[ImGuiKey_Delete] = VK_DELETE;
-#endif
+// #if defined(_WIN32)
+// 		// If we directly work with os specific key codes, we need to map special key types like tab
+// 		io.KeyMap[ImGuiKey_Tab] = VK_TAB;
+// 		io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
+// 		io.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
+// 		io.KeyMap[ImGuiKey_UpArrow] = VK_UP;
+// 		io.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
+// 		io.KeyMap[ImGuiKey_Backspace] = VK_BACK;
+// 		io.KeyMap[ImGuiKey_Enter] = VK_RETURN;
+// 		io.KeyMap[ImGuiKey_Space] = VK_SPACE;
+// 		io.KeyMap[ImGuiKey_Delete] = VK_DELETE;
+// #endif
 	}
 
-	void setStyle(uint32_t index) const
-	{
-		switch (index)
-		{
-		case 0:
-		{
-			ImGuiStyle& style = ImGui::GetStyle();
-			style = vulkanStyle;
-			break;
-		}
-		case 1:
-			ImGui::StyleColorsClassic();
-			break;
-		case 2:
-			ImGui::StyleColorsDark();
-			break;
-		case 3:
-			ImGui::StyleColorsLight();
-			break;
-		}
-	}
+	// void setStyle(uint32_t index) const
+	// {
+	// 	switch (index)
+	// 	{
+	// 	case 0:
+	// 	{
+	// 		ImGuiStyle& style = ImGui::GetStyle();
+	// 		style = vulkanStyle;
+	// 		break;
+	// 	}
+	// 	case 1:
+	// 		ImGui::StyleColorsClassic();
+	// 		break;
+	// 	case 2:
+	// 		ImGui::StyleColorsDark();
+	// 		break;
+	// 	case 3:
+	// 		ImGui::StyleColorsLight();
+	// 		break;
+	// 	}
+	// }
 
 	// Initialize all Vulkan resources used by the ui
 	void initResources(VkRenderPass renderPass, VkQueue copyQueue, const std::string& shadersPath)
@@ -343,7 +343,7 @@ public:
 	}
 
 	// Starts a new imGui frame and sets up windows and ui elements
-	void newFrame(VulkanExampleBase *example, bool updateFpsPlot)
+	void newFrame(VulkanExampleBase *example)
 	{
 		// const float uiScale = example->ui.scale;
         const float uiScale = 1.0;
@@ -351,48 +351,77 @@ public:
 		// Being an intermediate mode UI, we generate a new UI frame on each draw
 		ImGui::NewFrame();
 
-		// Init imGui windows and elements
-
-		// Debug window
-		// ImGui::SetWindowPos(ImVec2(20 * uiScale, 20 * uiScale), ImGuiSetCond_FirstUseEver);
-		// ImGui::SetWindowSize(ImVec2(300 * uiScale, 175 * uiScale), ImGuiSetCond_Always);
-		// ImGui::TextUnformatted(sampleName.c_str());
-		// ImGui::TextUnformatted(deviceName.c_str());
-		// // Render a fps plot
-		// if (updateFpsPlot) {
-		// 	std::rotate(fpsPlot.begin(), fpsPlot.begin() + 1, fpsPlot.end());
-		// 	fpsPlot.back() = lastFps;
-		// 	if (lastFps < fpsMin) {
-		// 		fpsMin = lastFps;
-		// 	}
-		// 	if (lastFps > fpsMax) {
-		// 		fpsMax = lastFps;
-		// 	}
-		// }
-		// ImGui::PlotLines("Frame Times", &fpsPlot[0], 50, 0, "", fpsMin, fpsMax, ImVec2(0, 80));
-
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 		
 		// Example settings window
 		ImGui::SetNextWindowPos(ImVec2(0.0, 0.0));
 		// ImGui::SetNextWindowSize(ImVec2(300 * uiScale, 200 * uiScale), ImGuiSetCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-		ImGui::Begin("Example settings", nullptr, window_flags);
-        ImGui::PushStyleColor(ImGuiCol_Text, (ImU32)ImColor(242, 255, 0, 255)); 
-        ImGui::Text("Channel created!");
-        ImGui::PopStyleColor();
-		// ImGui::Checkbox("LOCAL VARIABLE STUDIO", &displayModels);
-		// ImGui::Checkbox("Display logos", &displayLogos);
-		// ImGui::Checkbox("Display background", &displayBackground);
-		// ImGui::Checkbox("Animate light", &animateLight);
-		// ImGui::SliderFloat("Light speed", &lightSpeed, 0.1f, 1.0f);
-		// if (ImGui::Combo("UI style", &selectedStyle, "Vulkan\0Classic\0Dark\0Light\0")) {
-		// 	setStyle(selectedStyle);
-		// }
+		ImGui::Begin("Noquaco UI", nullptr, window_flags);
+        // ImGui::PushStyleColor(ImGuiCol_Text, (ImU32)ImColor(242, 255, 0, 255)); 
+        // ImGui::Text("Noquaco UI");
+        // ImGui::PopStyleColor();
 
-		ImGui::End();
+        // Define drawing params
+        float strokeWeight = 2.0f;
+        float rounding = 20.0f;
+		
+        
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();       // ImDrawList API uses screen coordinates!
 
-		// ImGui::ShowDemoWindow();
+        // Drawing text
+        draw_list->AddText(
+            ImVec2(50, 50), 
+            IM_COL32(242, 255, 0, 255), 
+            "Hello, Noquaco!"
+        );
+
+        // Drawing a Line
+        draw_list->AddLine(
+            ImVec2(50, 100),
+            ImVec2(250, 100),
+            IM_COL32(242, 255, 0, 255), 
+            strokeWeight
+        );
+
+        // Drawing a rect
+        float x = 50.0f;
+        float y = 150.0f;
+        float w = 100.0f;
+        float h = 100.0f;
+
+        draw_list->AddRect(
+            ImVec2(x, y),
+            ImVec2(x + w, y + h),
+            IM_COL32(242, 255, 0, 255), 
+            rounding,
+            15,
+            strokeWeight
+        );
+
+        // Drawing a circle
+        float rad = 50.0f;
+        x = 50.0f;
+        y = 300.0f;
+
+        draw_list->AddCircle(
+            ImVec2(x + rad, y + rad),
+            rad,
+            IM_COL32(242, 255, 0, 255), 
+            20,
+            strokeWeight
+        );
+
+        // Draw a triangle
+        draw_list->AddTriangle(
+            ImVec2(250, 300),
+            ImVec2(300, 400),
+            ImVec2(200, 400),
+            IM_COL32(242, 255, 0, 255), 
+            strokeWeight
+        );
+        
+        ImGui::End();
 
 		// This does not render the UI to the screen, but gathers the draw data for the UI frame that we'll use to render it
 		ImGui::Render();
@@ -688,7 +717,7 @@ public:
 
 		// Update fps plot once a second
 		bool updateFpsPlot = (frameCounter == 0);
-		imGui->newFrame(this, updateFpsPlot);
+		imGui->newFrame(this);
 		imGui->updateBuffers(currentBuffer);
 
 		VK_CHECK_RESULT(vkBeginCommandBuffer(cmdBuffer, &cmdBufInfo));
@@ -706,17 +735,17 @@ public:
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
 		VkDeviceSize offsets[1] = { 0 };
-		if (imGui->displayBackground) {
-			models.background.draw(cmdBuffer);
-		}
+		// if (imGui->displayBackground) {
+		// 	models.background.draw(cmdBuffer);
+		// }
 
-		if (imGui->displayModels) {
-			models.models.draw(cmdBuffer);
-		}
+		// if (imGui->displayModels) {
+		// 	models.models.draw(cmdBuffer);
+		// }
 
-		if (imGui->displayLogos) {
-			models.logos.draw(cmdBuffer);
-		}
+		// if (imGui->displayLogos) {
+		// 	models.logos.draw(cmdBuffer);
+		// }
 
 		// Render imGui
 		if (ui.visible) {
@@ -757,27 +786,27 @@ public:
 	}
 
 // Input handling is platform specific, to show how it's basically done this sample implements it for Windows
-#if defined(_WIN32)
-	virtual void OnHandleMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-		ImGuiIO& io = ImGui::GetIO();
-		// Only react to keyboard input if ImGui is active
-		if (io.WantCaptureKeyboard) {
-			// Character input
-			if (uMsg == WM_CHAR) {
-				if (wParam > 0 && wParam < 0x10000) {
-					io.AddInputCharacter((unsigned short)wParam);
-				}
-			}
-			// Special keys (tab, cursor, etc.)
-			if ((wParam < 256) && (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)) {
-				io.KeysDown[wParam] = true;
-			}
-			if ((wParam < 256) && (uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP)) {
-				io.KeysDown[wParam] = false;
-			}
-		}
-	}
-#endif
+// #if defined(_WIN32)
+// 	virtual void OnHandleMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+// 		ImGuiIO& io = ImGui::GetIO();
+// 		// Only react to keyboard input if ImGui is active
+// 		if (io.WantCaptureKeyboard) {
+// 			// Character input
+// 			if (uMsg == WM_CHAR) {
+// 				if (wParam > 0 && wParam < 0x10000) {
+// 					io.AddInputCharacter((unsigned short)wParam);
+// 				}
+// 			}
+// 			// Special keys (tab, cursor, etc.)
+// 			if ((wParam < 256) && (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)) {
+// 				io.KeysDown[wParam] = true;
+// 			}
+// 			if ((wParam < 256) && (uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP)) {
+// 				io.KeysDown[wParam] = false;
+// 			}
+// 		}
+// 	}
+// #endif
 
 };
 
