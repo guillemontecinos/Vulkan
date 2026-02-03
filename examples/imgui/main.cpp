@@ -9,6 +9,8 @@
 #include <imgui.h>
 #include "vulkanexamplebase.h"
 #include "VulkanglTFModel.h"
+#include "../../external/stb/stb_image.h"
+#include <VulkanTexture.h>
 
 // ----------------------------------------------------------------------------
 // ImGUI class
@@ -32,11 +34,13 @@ private:
 	VkDescriptorPool descriptorPool{ VK_NULL_HANDLE };
 	VkDescriptorSetLayout descriptorSetLayout{ VK_NULL_HANDLE };
 	VkDescriptorSet descriptorSet{ VK_NULL_HANDLE };
+	std::vector<vks::Texture2D*> loadedTextures{};
 	vks::VulkanDevice *device;
 	VulkanExampleBase *example;
 	ImGuiStyle vulkanStyle;
 public:
 	int selectedStyle = 0;
+	ImTextureID demoImage{ nullptr };
 	// UI params are set via push constants
 	struct PushConstBlock {
 		glm::vec2 scale;
@@ -83,6 +87,14 @@ public:
 		vkDestroySampler(device->logicalDevice, sampler, nullptr);
 		vkDestroyPipeline(device->logicalDevice, pipeline, nullptr);
 		vkDestroyPipelineLayout(device->logicalDevice, pipelineLayout, nullptr);
+		// Destroy any additional loaded textures
+		for (auto t : loadedTextures) {
+			if (t) {
+				t->destroy();
+				delete t;
+			}
+		}
+
 		vkDestroyDescriptorPool(device->logicalDevice, descriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(device->logicalDevice, descriptorSetLayout, nullptr);
 	}
@@ -103,41 +115,7 @@ public:
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(width, height);
 		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
-// #if defined(_WIN32)
-// 		// If we directly work with os specific key codes, we need to map special key types like tab
-// 		io.KeyMap[ImGuiKey_Tab] = VK_TAB;
-// 		io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
-// 		io.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
-// 		io.KeyMap[ImGuiKey_UpArrow] = VK_UP;
-// 		io.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
-// 		io.KeyMap[ImGuiKey_Backspace] = VK_BACK;
-// 		io.KeyMap[ImGuiKey_Enter] = VK_RETURN;
-// 		io.KeyMap[ImGuiKey_Space] = VK_SPACE;
-// 		io.KeyMap[ImGuiKey_Delete] = VK_DELETE;
-// #endif
 	}
-
-	// void setStyle(uint32_t index) const
-	// {
-	// 	switch (index)
-	// 	{
-	// 	case 0:
-	// 	{
-	// 		ImGuiStyle& style = ImGui::GetStyle();
-	// 		style = vulkanStyle;
-	// 		break;
-	// 	}
-	// 	case 1:
-	// 		ImGui::StyleColorsClassic();
-	// 		break;
-	// 	case 2:
-	// 		ImGui::StyleColorsDark();
-	// 		break;
-	// 	case 3:
-	// 		ImGui::StyleColorsLight();
-	// 		break;
-	// 	}
-	// }
 
 	// Initialize all Vulkan resources used by the ui
 	void initResources(VkRenderPass renderPass, VkQueue copyQueue, const std::string& shadersPath)
@@ -251,11 +229,11 @@ public:
 		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 		VK_CHECK_RESULT(vkCreateSampler(device->logicalDevice, &samplerInfo, nullptr, &sampler));
 
-		// Descriptor pool
+		// Descriptor pool (allow multiple combined image samplers for user textures)
 		std::vector<VkDescriptorPoolSize> poolSizes = {
-			vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1)
+			vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 16)
 		};
-		VkDescriptorPoolCreateInfo descriptorPoolInfo = vks::initializers::descriptorPoolCreateInfo(poolSizes, 2);
+		VkDescriptorPoolCreateInfo descriptorPoolInfo = vks::initializers::descriptorPoolCreateInfo(poolSizes, 16);
 		VK_CHECK_RESULT(vkCreateDescriptorPool(device->logicalDevice, &descriptorPoolInfo, nullptr, &descriptorPool));
 
 		// Descriptor set layout
@@ -342,11 +320,37 @@ public:
 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device->logicalDevice, VK_NULL_HANDLE, 1, &pipelineCI, nullptr, &pipeline));
 	}
 
+	// Load a PNG (or other stb-supported) image file, upload to GPU and create a descriptor set
+	ImTextureID addImageFromFile(const std::string& filename, VkQueue copyQueue)
+	{
+		int texWidth = 0, texHeight = 0, texChannels = 0;
+		stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		if (!pixels) {
+			return nullptr;
+		}
+		VkDeviceSize imageSize = (VkDeviceSize)texWidth * texHeight * 4;
+
+		vks::Texture2D* texture = new vks::Texture2D();
+		texture->fromBuffer(pixels, imageSize, VK_FORMAT_R8G8B8A8_UNORM, (uint32_t)texWidth, (uint32_t)texHeight, device, copyQueue, VK_FILTER_LINEAR);
+		stbi_image_free(pixels);
+
+		// Allocate a descriptor set for this texture
+		VkDescriptorSet texDescriptorSet = VK_NULL_HANDLE;
+		VkDescriptorSetAllocateInfo allocInfo = vks::initializers::descriptorSetAllocateInfo(descriptorPool, &descriptorSetLayout, 1);
+		VK_CHECK_RESULT(vkAllocateDescriptorSets(device->logicalDevice, &allocInfo, &texDescriptorSet));
+		VkDescriptorImageInfo texDescriptor = vks::initializers::descriptorImageInfo(texture->sampler, texture->view, texture->imageLayout);
+		VkWriteDescriptorSet writeDescriptorSet = vks::initializers::writeDescriptorSet(texDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, &texDescriptor);
+		vkUpdateDescriptorSets(device->logicalDevice, 1, &writeDescriptorSet, 0, nullptr);
+
+		loadedTextures.push_back(texture);
+		return (ImTextureID)texDescriptorSet;
+	}
+
 	// Starts a new imGui frame and sets up windows and ui elements
 	void newFrame(VulkanExampleBase *example)
 	{
 		// const float uiScale = example->ui.scale;
-        const float uiScale = 1.0;
+        // const float uiScale = 1.0;
 
 		// Being an intermediate mode UI, we generate a new UI frame on each draw
 		ImGui::NewFrame();
@@ -355,17 +359,12 @@ public:
 		
 		// Example settings window
 		ImGui::SetNextWindowPos(ImVec2(0.0, 0.0));
-		// ImGui::SetNextWindowSize(ImVec2(300 * uiScale, 200 * uiScale), ImGuiSetCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 		ImGui::Begin("Noquaco UI", nullptr, window_flags);
-        // ImGui::PushStyleColor(ImGuiCol_Text, (ImU32)ImColor(242, 255, 0, 255)); 
-        // ImGui::Text("Noquaco UI");
-        // ImGui::PopStyleColor();
 
         // Define drawing params
         float strokeWeight = 2.0f;
         float rounding = 20.0f;
-		
         
         ImDrawList* draw_list = ImGui::GetWindowDrawList();       // ImDrawList API uses screen coordinates!
 
@@ -408,7 +407,7 @@ public:
             ImVec2(x + rad, y + rad),
             rad,
             IM_COL32(242, 255, 0, 255), 
-            20,
+            32,
             strokeWeight
         );
 
@@ -420,8 +419,19 @@ public:
             IM_COL32(242, 255, 0, 255), 
             strokeWeight
         );
-        
-        ImGui::End();
+
+        x = 400.0f;
+        y = 50.0f;
+        // Draw texture atlas
+        draw_list->AddImage(
+            demoImage,
+            ImVec2(x, y),
+            ImVec2(x + 256.0f, y + 256.0f),
+            ImVec2(0.0f, 0.0f),
+            ImVec2(1.0f, 1.0f)
+        );
+
+		ImGui::End();
 
 		// This does not render the UI to the screen, but gathers the draw data for the UI frame that we'll use to render it
 		ImGui::Render();
@@ -513,6 +523,12 @@ public:
 					scissorRect.offset.y = std::max((int32_t)(pcmd->ClipRect.y), 0);
 					scissorRect.extent.width = (uint32_t)(pcmd->ClipRect.z - pcmd->ClipRect.x);
 					scissorRect.extent.height = (uint32_t)(pcmd->ClipRect.w - pcmd->ClipRect.y);
+					// Bind descriptor set for this draw command (texture), fall back to default font descriptor
+					VkDescriptorSet cmdDescriptor = descriptorSet;
+					if (pcmd->TextureId) {
+						cmdDescriptor = (VkDescriptorSet)pcmd->TextureId;
+					}
+					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &cmdDescriptor, 0, nullptr);
 					vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
 					vkCmdDrawIndexed(commandBuffer, pcmd->ElemCount, 1, indexOffset, vertexOffset, 0);
 					indexOffset += pcmd->ElemCount;
@@ -682,6 +698,8 @@ public:
 		imGui->initResources(renderPass, queue, getShadersPath());
 		imGui->sampleName = title;
 		imGui->deviceName = deviceProperties.deviceName;
+		// Load an example PNG from the assets and make it available to ImGui
+		imGui->demoImage = imGui->addImageFromFile("/home/pi/Documents/Vulkan/examples/assets/noquaco-atlas.png", queue);
 	}
 
 	void prepare()
@@ -735,22 +753,9 @@ public:
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
 		VkDeviceSize offsets[1] = { 0 };
-		// if (imGui->displayBackground) {
-		// 	models.background.draw(cmdBuffer);
-		// }
-
-		// if (imGui->displayModels) {
-		// 	models.models.draw(cmdBuffer);
-		// }
-
-		// if (imGui->displayLogos) {
-		// 	models.logos.draw(cmdBuffer);
-		// }
 
 		// Render imGui
-		if (ui.visible) {
-			imGui->drawFrame(cmdBuffer, currentBuffer);
-		}
+        imGui->drawFrame(cmdBuffer, currentBuffer);
 
 		vkCmdEndRenderPass(cmdBuffer);
 
@@ -784,30 +789,6 @@ public:
 		ImGuiIO& io = ImGui::GetIO();
 		handled = io.WantCaptureMouse && ui.visible;
 	}
-
-// Input handling is platform specific, to show how it's basically done this sample implements it for Windows
-// #if defined(_WIN32)
-// 	virtual void OnHandleMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-// 		ImGuiIO& io = ImGui::GetIO();
-// 		// Only react to keyboard input if ImGui is active
-// 		if (io.WantCaptureKeyboard) {
-// 			// Character input
-// 			if (uMsg == WM_CHAR) {
-// 				if (wParam > 0 && wParam < 0x10000) {
-// 					io.AddInputCharacter((unsigned short)wParam);
-// 				}
-// 			}
-// 			// Special keys (tab, cursor, etc.)
-// 			if ((wParam < 256) && (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)) {
-// 				io.KeysDown[wParam] = true;
-// 			}
-// 			if ((wParam < 256) && (uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP)) {
-// 				io.KeysDown[wParam] = false;
-// 			}
-// 		}
-// 	}
-// #endif
-
 };
 
 VULKAN_EXAMPLE_MAIN()
